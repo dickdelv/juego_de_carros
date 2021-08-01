@@ -14,6 +14,7 @@ import com.juegocarros.juegodecarros.entity.Race;
 import com.juegocarros.juegodecarros.entity.Track;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  *
  * @author dickdelv
@@ -21,6 +22,7 @@ import java.util.List;
 @Component
 public class crearjugador {
 
+    int cantidadConductores = 0;
     Scanner reader = new Scanner(System.in);
 
     @Autowired
@@ -66,7 +68,6 @@ public class crearjugador {
         String nombreJugador;
         nombreJugador = reader.next();
 
-        //Consultar último id 
         int ultimo = driverService.latestIdDriver();
         System.out.println(ultimo);
         int nextIdDriver;
@@ -76,7 +77,7 @@ public class crearjugador {
             nextIdDriver = driverService.latestIdDriver() + 1;
         }
 
-        Driver driver = new Driver(nextIdDriver, nombreJugador); //Ajustar id
+        Driver driver = new Driver(nextIdDriver, nombreJugador);
         guardarConductor(driver, nombreJugador);
 
     }
@@ -97,7 +98,6 @@ public class crearjugador {
         Integer numberCar;
         numberCar = reader.nextInt();
 
-        // datos del conductor
         driver.setIdCar(numberCar);
         driverService.Save(driver);
 
@@ -111,24 +111,23 @@ public class crearjugador {
 
         System.out.println("Escribe la cantidad de conductores que van a participar en la carrera\n");
 
-        int cantidadConductores = 0;
         cantidadConductores = reader.nextInt();
 
         System.out.println("Seleccion de conductor\n");
 
         List<Driver> listaDriversNames = new ArrayList<Driver>();
         listaDriversNames = driverService.findAll();
+        ArrayList<String> selecc = new ArrayList<String>();
         for (int i = 0; i < listaDriversNames.size(); i++) {
             System.out.println(listaDriversNames.get(i).getIdPlayer() + " " + listaDriversNames.get(i).getNamePlayer() + " " + listaDriversNames.get(i).getIdCar());
         }
-        
+
         for (int i = 1; i <= cantidadConductores; i++) {
             System.out.println("Seleccione conductor " + i + "\n");
             int conductor = reader.nextInt();
-            System.out.println("Conductor seleccionado N "+ i +" es "+listaDriversNames.get(conductor-1).getNamePlayer() +"\n");
+            System.out.println("Conductor seleccionado # " + i + " es " + listaDriversNames.get(conductor - 1).getNamePlayer() + "\n");
+            selecc.add(listaDriversNames.get(conductor - 1).getNamePlayer());
         }
-
-        
 
         System.out.println("Seleccion de pista\n");
         int sel = 0;
@@ -136,7 +135,7 @@ public class crearjugador {
         List<Track> pista = new ArrayList<Track>();
         pista = trackService.findAll();
         for (int i = 0; i < pista.size(); i++) {
-            System.out.println(pista.get(i).getIdTrack() + " " + pista.get(i).getNameTrack()+ " " + pista.get(i).getDistanceTrack()+" Km");
+            System.out.println(pista.get(i).getIdTrack() + " " + pista.get(i).getNameTrack() + " " + pista.get(i).getDistanceTrack() + " Km");
         }
 
         System.out.println("Seleccione la pista\n");
@@ -146,53 +145,48 @@ public class crearjugador {
 
         System.out.println("Ya Podemos empezar el juego\n");
 
-        ejecutarJuego(cantidadConductores, sel, listaDriversNames);
+        ejecutarJuego(cantidadConductores, sel, selecc);
 
     }
 
-    public void ejecutarJuego(int cantidadConductores, int distanciaPista, List<Driver> listaNombreConductores) {
-
-        recorrerPistas(cantidadConductores, listaNombreConductores, distanciaPista);
+    public void ejecutarJuego(int cantidadConductores, int distanciaPista, ArrayList<String> selecc) {
+        for (int i = 0; i < selecc.size(); i++) {
+            System.out.println("el jugador numero " + (i + 1) + " es : " + selecc.get(i) + "\n");
+        }
+        recorrerPistas(cantidadConductores, distanciaPista, selecc);
     }
 
-    public void recorrerPistas(int cantidadConductores, List<Driver> listaNombreConductores, int distanciaPistaKilometros) {
+    public void recorrerPistas(int cantidadConductores, int distanciaPistaKilometros, ArrayList<String> selecc) {
 
         int conversionDistanciaMetros = distanciaPistaKilometros * 1000;
+        recorrerTurnosPorMetros(conversionDistanciaMetros, selecc, cantidadConductores);
 
-        for (int i = 0; i < distanciaPistaKilometros; i++) {
-
-            recorrerTurnosPorMetros(conversionDistanciaMetros, listaNombreConductores, cantidadConductores);
-        }
-
-        //Final de carrera
     }
 
-    public void recorrerTurnosPorMetros(int conversionDistanciaMetros, List<Driver> listaNombreConductores, int cantidadConductores) {
+    public void recorrerTurnosPorMetros(int conversionDistanciaMetros, ArrayList<String> selecc, int cantidadConductores) {
 
         Podium podio = new Podium();
         List<Race> listaDriver = new ArrayList<Race>();
-
-        int metrosAcumulados[] = new int[listaNombreConductores.size()];
-        while (podio.getIdThirdPlace() == 0) {
-            recorrerConductores(listaDriver, metrosAcumulados);
+        int metrosAcumulados[] = new int[selecc.size()];
+        
+         while (podio.getIdThirdPlace() == 0) {
+            recorrerConductores(listaDriver, metrosAcumulados,selecc);
             for (int i = 0; i < metrosAcumulados.length; i++) {
                 if (metrosAcumulados[i] >= conversionDistanciaMetros) {
                     if (podio.getIdFirstPlace() == 0) {
-                        podio.setIdFirstPlace(i);//listaNombreConductores.get(i));
+                        podio.setIdFirstPlace(i);
                     } else if (podio.getIdSecondPlace() == 0) {
-                        podio.setIdSecondPlace(i);//listaNombreConductores.get(i);
+                        podio.setIdSecondPlace(i);
                     } else if (podio.getIdThirdPlace() == 0) {
-                        podio.setIdThirdPlace(i);//listaNombreConductores.get(i);
+                        podio.setIdThirdPlace(i);
                     }
                 }
-            }
+            } 
         }
 
-        //Guardar podio BD
-        //Imprimir podio
     }
 
-    public void recorrerConductores(List<Race> listRace, int metrosAcumulados[]) {
+    public void recorrerConductores(List<Race> listRace, int metrosAcumulados[],ArrayList<String> selecc) {
 
         for (int i = 0; i < cantidadConductores; i++) {
 
@@ -200,7 +194,7 @@ public class crearjugador {
             int metrosAvanzados = numeroAleatorio * 100;
             metrosAcumulados[i] = metrosAcumulados[i] + metrosAvanzados;
 
-            System.out.println("El conductor " + listaNombreConductores.get(i) + "sacó " + numeroAleatorio + " con el dado, avanza " + metrosAvanzados + " metros, lleva recorrido " + metrosAcumulados[i] + " metros de la pista actual hasta el momento");
+            System.out.println("El conductor " + selecc.get(i) + " sacó " + numeroAleatorio + " con el dado, avanza " + metrosAvanzados + " metros, lleva recorrido " + metrosAcumulados[i] + " metros de la pista actual hasta el momento");
         }
 
     }
