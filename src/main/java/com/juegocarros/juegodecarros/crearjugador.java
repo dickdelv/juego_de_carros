@@ -194,7 +194,7 @@ public class crearjugador {
             int metrosAvanzados = numeroAleatorio * 100;
             metrosAcumulados[i] = metrosAcumulados[i] + metrosAvanzados;
 
-            System.out.println("El conductor " + selecc.get(i) + " sacó " + numeroAleatorio + " con el dado, avanza " + metrosAvanzados + " metros, lleva recorrido " + metrosAcumulados[i] + " metros de la pista actual hasta el momento");
+            System.out.println("El conductor " + selecc.get(i) + " sacó " + numeroAleatorio + " con el dado, avanza " + metrosAvanzados + " metros, lleva recorrido " + metrosAcumulados[i] + " metros en total");
         }
 
     }
